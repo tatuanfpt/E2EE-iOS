@@ -11,9 +11,12 @@ struct MessageTextField: View {
     @State var text: String = ""
     private let didTapSend: (String) -> Void
     
-    
-    init(text: String, didTapSend: @escaping (String) -> Void) {
+    fileprivate init(text: String, didTapSend: @escaping (String) -> Void) {
         self.text = text
+        self.didTapSend = didTapSend
+    }
+    
+    init(didTapSend: @escaping (String) -> Void) {
         self.didTapSend = didTapSend
     }
     
@@ -33,7 +36,7 @@ struct MessageTextField: View {
         })
         .padding()
         .background(
-            Capsule()
+            RoundedRectangle(cornerRadius: 20)
                 .fill(.white)
                 .stroke(.gray)
         )
@@ -42,6 +45,7 @@ struct MessageTextField: View {
     private var sendButton: some View {
         Button {
             didTapSend(text)
+            text = ""
         } label: {
             Image(systemName: "paperplane")
                 .font(.title2)

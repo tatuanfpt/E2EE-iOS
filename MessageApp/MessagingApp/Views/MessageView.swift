@@ -29,8 +29,11 @@ struct MessageView: View {
     private var contentView: some View {
         Text(content)
             .padding()
-            .background(.white)
-            .clipShape(Capsule())
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.white)
+                    .stroke(.gray)
+            )
             .shadow(color: shadowColor, radius: shadowRadius)
     }
 }
