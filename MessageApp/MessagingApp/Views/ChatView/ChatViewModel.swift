@@ -32,11 +32,12 @@ class ChatViewModel {
     }
     
     func fetchMessages() {
-        self.messages = mockMessages
+        
+//        self.messages = mockMessages
     }
     
     func sendMessage(_ text: String) {
         messages.append(Message(content: text, isFromCurrentUser: true))
-        LocalSocketService.shared.sendMessage(text)
+        LocalSocketService.shared.sendMessage(TextMessage(user: <#T##String#>, message: <#T##String#>))
     }
 }

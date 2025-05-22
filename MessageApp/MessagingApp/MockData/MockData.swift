@@ -40,3 +40,9 @@ final class NullSocketService<Message>: SocketService {
         Empty<Message, Error>().eraseToAnyPublisher()
     }
 }
+
+final class NullAuthenticationService<Authentication>: AuthenticationService {
+    func login(data: Authentication) -> AnyPublisher<Bool, Error> {
+        Empty<Bool, Error>().eraseToAnyPublisher()
+    }
+}
