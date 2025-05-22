@@ -5,6 +5,7 @@
 //  Created by Sam on 21/5/25.
 //
 
+import Combine
 
 let mockMessages: [Message] = [
         Message(content: "Hey, how are you?", isFromCurrentUser: true),
@@ -28,3 +29,14 @@ let mockMessages: [Message] = [
         Message(content: "Thanks, appreciate it!", isFromCurrentUser: false),
         Message(content: "No problem at all!", isFromCurrentUser: true)
     ]
+
+
+final class NullSocketService<Message>: SocketService {
+    func sendMessage(_ message: Message) {
+        
+    }
+    
+    func subscribeToIncomingMessages() -> AnyPublisher<Message, Error> {
+        Empty<Message, Error>().eraseToAnyPublisher()
+    }
+}

@@ -10,13 +10,19 @@ import Foundation
 import Combine
 import SocketIO
 
-class SocketService {
-    static let shared = SocketService()
+protocol SocketService<Message> {
+    associatedtype Message
+    func sendMessage(_ message: Message)
+    func subscribeToIncomingMessages() -> AnyPublisher<Message, Error>
+}
+
+class LocalSocketService: SocketService {
+    static let shared = LocalSocketService()
     
     private var manager: SocketManager
     private var socket: SocketIOClient
     
-    let subject = PassthroughSubject<String, Error>()
+    private let subject = PassthroughSubject<String, Error>()
 
     init() {
         manager = SocketManager(socketURL: URL(string: "http://localhost:3000")!, config: [.log(true), .compress])
@@ -48,4 +54,9 @@ class SocketService {
         print("📤 Sending: \(message)")
         socket.emit("message", message)
     }
+    
+    func subscribeToIncomingMessages() -> AnyPublisher<String, Error> {
+        subject.eraseToAnyPublisher()
+    }
+    
 }

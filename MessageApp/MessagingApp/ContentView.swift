@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    let chatViewModel = ChatViewModel()
+    let chatViewModel = ChatViewModel(service: LocalSocketService.shared)
     
     var body: some View {
         ChatView(viewModel: chatViewModel)
