@@ -7,29 +7,64 @@
 
 import SwiftUI
 
+import Combine
+
 struct ChatView: View {
-    @State private var messages: [Message] = []
+    @Bindable var viewModel: ChatViewModel
     @FocusState private var isFocused: Bool
+    
+    init(viewModel: ChatViewModel) {
+        self.viewModel = viewModel
+    }
     
     var body: some View {
         VStack {
-            MessageListView(messages: $messages, isFocused: $isFocused)
+            MessageListView(messages: $viewModel.messages, isFocused: $isFocused)
                 .onTapGesture {
                     isFocused = false
                 }
             MessageTextField() { text in
-                messages.append(Message(content: text, isFromCurrentUser: true))
+                viewModel.sendMessage(text)
             }
             .focused($isFocused)
             .padding()
         }
         .clipped()
         .onAppear {
-            self.messages = mockMessages
+            viewModel.fetchMessages()
+            viewModel.subscribe()
         }
     }
 }
 
+@Observable
+class ChatViewModel {
+    var messages: [Message] = []
+    private var cancellables: Set<AnyCancellable> = []
+    
+    func subscribe() {
+        SocketService.shared.subject
+            .sink { completion in
+                switch completion {
+                case .finished: print("socket finished")
+                case .failure(let error): print("socket get error: \(error.localizedDescription)")
+                }
+            } receiveValue: { [weak self] receivedMessage in
+                self?.messages.append(Message(content: receivedMessage, isFromCurrentUser: false))
+            }
+            .store(in: &cancellables)
+    }
+    
+    func fetchMessages() {
+        self.messages = mockMessages
+    }
+    
+    func sendMessage(_ text: String) {
+        messages.append(Message(content: text, isFromCurrentUser: true))
+        SocketService.shared.sendMessage(text)
+    }
+}
+
 #Preview {
-    ChatView()
+    ChatView(viewModel: ChatViewModel())
 }

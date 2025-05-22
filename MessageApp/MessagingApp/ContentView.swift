@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
+    let chatViewModel = ChatViewModel()
+    
     var body: some View {
-        ChatView()
+        ChatView(viewModel: chatViewModel)
     }
 }
 
