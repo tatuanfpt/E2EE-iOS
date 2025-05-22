@@ -8,10 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
-    let chatViewModel = ChatViewModel(service: LocalSocketService.shared)
+//    let chatViewModel = ChatViewModel(user: <#String#>, service: LocalSocketService.shared)
+    let logInViewModel = LoginViewModel(service: PasswordAuthenticationService())
     
     var body: some View {
-        ChatView(viewModel: chatViewModel)
+        NavigationView {
+            LogInView(viewModel: logInViewModel)
+        }
     }
 }
 

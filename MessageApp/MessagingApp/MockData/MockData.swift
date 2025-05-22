@@ -39,4 +39,14 @@ final class NullSocketService<Message>: SocketService {
     func subscribeToIncomingMessages() -> AnyPublisher<Message, Error> {
         Empty<Message, Error>().eraseToAnyPublisher()
     }
+    
+    func connect() -> AnyPublisher<Void, any Error> {
+        Empty<Void, Error>().eraseToAnyPublisher()
+    }
+}
+
+final class NullAuthenticationService<Authentication>: AuthenticationService {
+    func login(data: Authentication) -> AnyPublisher<Bool, Error> {
+        Empty<Bool, Error>().eraseToAnyPublisher()
+    }
 }
