@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct LogInView: View {
-    @State private var email: String = ""
-    @State private var password: String = ""
+    @State private var email: String = "S"
+    @State private var password: String = "S"
     
     @Bindable var viewModel: LoginViewModel
     
@@ -28,7 +28,7 @@ struct LogInView: View {
             }
             
             NavigationLink(isActive: $viewModel.isLoggedIn) {
-                ChatView(viewModel: ChatViewModel(user: email, service: LocalSocketService.shared))
+                ConversationView(viewModel: ConversationViewModel(sender: email, service: RemoteUserService()))
                     .toolbar(.hidden)
             } label: {
                 EmptyView()

@@ -30,8 +30,12 @@ let mockMessages: [Message] = [
         Message(content: "No problem at all!", isFromCurrentUser: true)
     ]
 
+let mockUsers: [User] = [
+    User(id: 1, username: "S"),
+    User(id: 2, username: "A")
+]
 
-final class NullSocketService<Message>: SocketService {
+final class NullSocketService<User, Message>: SocketService {
     func sendMessage(_ message: Message) {
         
     }
@@ -40,7 +44,7 @@ final class NullSocketService<Message>: SocketService {
         Empty<Message, Error>().eraseToAnyPublisher()
     }
     
-    func connect() -> AnyPublisher<Void, any Error> {
+    func connect(user: User) -> AnyPublisher<Void, any Error> {
         Empty<Void, Error>().eraseToAnyPublisher()
     }
 }
@@ -48,5 +52,11 @@ final class NullSocketService<Message>: SocketService {
 final class NullAuthenticationService<Authentication>: AuthenticationService {
     func login(data: Authentication) -> AnyPublisher<Bool, Error> {
         Empty<Bool, Error>().eraseToAnyPublisher()
+    }
+}
+
+final class NullUserService: UserService {
+    func fetchUsers() -> AnyPublisher<[User], any Error> {
+        Empty<[User], Error>().eraseToAnyPublisher()
     }
 }

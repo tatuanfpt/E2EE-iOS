@@ -18,7 +18,7 @@ struct PasswordAuthentication {
     let password: String
 }
 
-struct User: Codable {
+struct User: Identifiable, Codable {
     let id: Int
     let username: String
 }

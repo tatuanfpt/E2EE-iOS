@@ -37,5 +37,5 @@ struct ChatView: View {
 }
 
 #Preview {
-    ChatView(viewModel: ChatViewModel(user: "slh", service: NullSocketService<TextMessage>()))
+    ChatView(viewModel: ChatViewModel(sender: "slh", receiver: "", service: NullSocketService<String, TextMessage>()))
 }

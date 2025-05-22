@@ -10,13 +10,15 @@ import Combine
 
 @Observable
 class ChatViewModel {
-    private let user: String
-    let service: any SocketService<TextMessage>
+    private let sender: String
+    private let receiver: String
+    let service: any SocketService<String, TextMessage>
     var messages: [Message] = []
     private var cancellables: Set<AnyCancellable> = []
     
-    init(user: String, service: any SocketService<TextMessage>) {
-        self.user = user
+    init(sender: String, receiver: String, service: any SocketService<String, TextMessage>) {
+        self.sender = sender
+        self.receiver = receiver
         self.service = service
     }
     
@@ -36,7 +38,7 @@ class ChatViewModel {
     }
     
     private func connect() {
-        service.connect()
+        service.connect(user: sender)
             .sink { completion in
                 switch completion {
                     case .finished: print("socket connected")
@@ -52,6 +54,6 @@ class ChatViewModel {
     
     func sendMessage(_ text: String) {
         messages.append(Message(content: text, isFromCurrentUser: true))
-        LocalSocketService.shared.sendMessage(TextMessage(user: user, message: text))
+        LocalSocketService.shared.sendMessage(TextMessage(sender: sender, receiver: receiver, message: text))
     }
 }

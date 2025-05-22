@@ -10,21 +10,24 @@ import Foundation
 import Combine
 import SocketIO
 
-protocol SocketService<Message> {
+protocol SocketService<User, Message> {
+    associatedtype User
     associatedtype Message
-    func connect() -> AnyPublisher<Void, Error>
+    func connect(user: User) -> AnyPublisher<Void, Error>
     //TODO: -display status of message: sending, sent, read
     func sendMessage(_ message: Message)
     func subscribeToIncomingMessages() -> AnyPublisher<Message, Error>
 }
 
 struct TextMessage: SocketData {
-    let user: String
+    let sender: String
+    let receiver: String
     let message: String
 }
 
 class LocalSocketService: SocketService {
     typealias Message = TextMessage
+    typealias User = String
     static let shared = LocalSocketService()
     
     private var manager: SocketManager
@@ -40,23 +43,32 @@ class LocalSocketService: SocketService {
         setupHandlers()
     }
     
-    func connect() -> AnyPublisher<Void, Error> {
+    func connect(user: User) -> AnyPublisher<Void, Error> {
+        socket.on(clientEvent: .connect) { [weak self] data, ack in
+            print("🔌 Socket connected")
+            self?.registerUser(user)
+        }
+        
         socket.connect()
         return connectSubject.eraseToAnyPublisher()
     }
-
-    private func setupHandlers() {
-        socket.on(clientEvent: .connect) { [weak self] data, ack in
-            print("🔌 Socket connected")
+    
+    private func registerUser(_ user: User) {
+        socket.on("register") { [weak self] _, _ in
+            print("🔌 Socket registered successfully with user: \(user)")
             self?.connectSubject.send(())
         }
+        socket.emit("register", user)
+    }
+
+    private func setupHandlers() {
 
         socket.on("receive-message") { [weak self] data, ack in
             if let user = data[0] as? String,
             let message = data[1] as? String {
                 print("📥 Message received: \(message)")
                 // You can post a notification or update the UI here
-                self?.subject.send(TextMessage(user: user, message: message))
+                self?.subject.send(TextMessage(sender: user, receiver: "", message: message))
             }
         }
 
@@ -79,7 +91,7 @@ class LocalSocketService: SocketService {
     }
     
     func login(email: String, password: String, completion: @escaping () -> Void) {
-        socket.emit("authentication", email, password, completion: completion)
+        socket.emit("register", email, password, completion: completion)
     }
     
 }
