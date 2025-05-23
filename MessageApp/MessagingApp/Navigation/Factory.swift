@@ -16,9 +16,9 @@ final class Factory {
 // Root
 extension Factory {
     func createConversation(sender: String, didTapItem: @escaping (String, String) -> Void) -> some View {
-//        if conversationViewModel == nil {
+        if conversationViewModel == nil {
             conversationViewModel = ConversationViewModel(sender: sender, service: userService, didTapItem: didTapItem)
-//        }
+        }
         
         guard let conversationViewModel = conversationViewModel else {
             fatalError("conversationViewModel need to be set before use ")
@@ -30,9 +30,9 @@ extension Factory {
     }
     
     func createChat(sender: String, receiver: String) -> some View {
-//        if chatViewModel == nil {
+        if chatViewModel == nil {
             chatViewModel = ChatViewModel(sender: sender, receiver: receiver, service: socketService)
-//        }
+        }
         
         guard let chatViewModel = chatViewModel else {
             fatalError("chatViewModel need to be set before use ")

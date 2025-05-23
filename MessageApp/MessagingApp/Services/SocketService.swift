@@ -32,7 +32,6 @@ struct TextMessage: SocketData {
 class LocalSocketService: SocketService {
     typealias Message = TextMessage
     typealias User = String
-    static let shared = LocalSocketService()
     
     private var manager: SocketManager
     private var socket: SocketIOClient
@@ -49,7 +48,7 @@ class LocalSocketService: SocketService {
     
     func connect(user: User) -> AnyPublisher<Void, Error> {
         socket.on(clientEvent: .connect) { [weak self] data, ack in
-            print("🔌 Socket connected")
+            print("🔌 Socket connected \(self?.socket.status)")
             self?.registerUser(user)
         }
         
@@ -59,7 +58,7 @@ class LocalSocketService: SocketService {
     
     private func registerUser(_ user: User) {
         socket.on("register") { [weak self] _, _ in
-            print("🔌 Socket registered successfully with user: \(user)")
+            print("🔌 Socket registered successfully with user: \(user) - \(self?.socket.status)")
             self?.connectSubject.send(())
         }
         socket.emit("register", user)
@@ -90,6 +89,10 @@ class LocalSocketService: SocketService {
     }
 
     func sendMessage(_ message: Message) {
+        if socket.status != .connected {
+            print("❌ Socket not connected yet \(socket.status)")
+            return
+        }
         print("📤 Sending: \(message)")
         socket.emit("send-message", message)
     }

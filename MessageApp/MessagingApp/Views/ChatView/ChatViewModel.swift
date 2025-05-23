@@ -56,6 +56,6 @@ class ChatViewModel {
     
     func sendMessage(_ text: String) {
         messages.append(Message(content: text, isFromCurrentUser: true))
-        LocalSocketService.shared.sendMessage(TextMessage(sender: sender, receiver: receiver, message: text))
+        service.sendMessage(TextMessage(sender: sender, receiver: receiver, message: text))
     }
 }
