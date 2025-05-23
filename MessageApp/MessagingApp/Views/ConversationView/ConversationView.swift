@@ -9,27 +9,31 @@ import SwiftUI
 
 struct ConversationView: View {
     @Bindable var viewModel: ConversationViewModel
-    @State private var isActive: Bool = false
     
     init(viewModel: ConversationViewModel) {
         self.viewModel = viewModel
     }
     
     var body: some View {
-        List(viewModel.users) { user in
-            NavigationLink(isActive: $isActive) {
-                ChatView(viewModel: ChatViewModel(sender: viewModel.sender, receiver: user.username, service: LocalSocketService.shared))
-                    .toolbar(.hidden)
-            } label: {
-                Text(user.username)
-                    .onTapGesture {
-                        isActive = true
-                    }
+        VStack {
+            Text("\(viewModel.users.count)")
+            List(viewModel.users) { user in
+                HStack {
+                    Text("\(user.id)")
+                    Text(user.username)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    print("🙈 \(user)")
+                    viewModel.select(user: user)
+                }
             }
         }
         .onAppear {
             viewModel.fetchUsers()
         }
+        .navigationTitle("Conversation")
     }
 }
 
@@ -41,24 +45,36 @@ class ConversationViewModel {
     
     private let service: UserService
     private var cancellables: Set<AnyCancellable> = []
+    private let didTapItem: (String, String) -> Void
     
-    init(sender: String, service: UserService) {
+    init(sender: String, service: UserService, didTapItem: @escaping (String, String) -> Void) {
         self.sender = sender
         self.service = service
+        self.didTapItem = didTapItem
     }
     
     func fetchUsers() {
         service.fetchUsers()
             .sink { completion in
-                
+                switch completion {
+                case .failure(let error):
+                    //TODO: -show error state
+                    print("❌ fetchUsers failed")
+                case .finished: break
+                }
             } receiveValue: { [weak self] users in
+                print("🙈 list user \(users.count)")
                 self?.users = users
             }
             .store(in: &cancellables)
 
     }
+    
+    func select(user: User) {
+        didTapItem(sender, user.username)
+    }
 }
 
 #Preview {
-    ConversationView(viewModel: ConversationViewModel(sender: "", service: NullUserService()))
+    ConversationView(viewModel: ConversationViewModel(sender: "", service: NullUserService(), didTapItem: { _, _ in }))
 }

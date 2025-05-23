@@ -5,9 +5,10 @@ const db = require("../db/index");
 // GET /users
 router.get("/users", (req, res) => {
     try {
-      const stmt = db.prepare("SELECT id, name FROM users");
+      const stmt = db.prepare("SELECT id, username FROM users");
       const users = stmt.all();
       res.json({ users });
+      console.log('GET user: ', users);
     } catch (err) {
       console.error("Error fetching users:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -20,7 +21,7 @@ router.get("/users/chatted-with/:userId", (req, res) => {
   
     try {
       const stmt = db.prepare(`
-        SELECT u.id, u.name
+        SELECT u.id, u.username
   FROM (
     SELECT DISTINCT
       CASE

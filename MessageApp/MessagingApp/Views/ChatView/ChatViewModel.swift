@@ -10,11 +10,13 @@ import Combine
 
 @Observable
 class ChatViewModel {
-    private let sender: String
-    private let receiver: String
+    //TODO: -should be let
+    var sender: String
+    var receiver: String
     let service: any SocketService<String, TextMessage>
     var messages: [Message] = []
-    private var cancellables: Set<AnyCancellable> = []
+    private var cancellable: AnyCancellable?
+    private var connectCancellable: AnyCancellable?
     
     init(sender: String, receiver: String, service: any SocketService<String, TextMessage>) {
         self.sender = sender
@@ -23,7 +25,8 @@ class ChatViewModel {
     }
     
     func subscribe() {
-        service.subscribeToIncomingMessages()
+        print("🙈 sender: \(sender) to receiver: \(receiver)")
+        cancellable = service.subscribeToIncomingMessages()
             .sink { completion in
                 switch completion {
                 case .finished: print("socket finished")
@@ -32,13 +35,12 @@ class ChatViewModel {
             } receiveValue: { [weak self] response in
                 self?.messages.append(Message(content: response.message, isFromCurrentUser: false))
             }
-            .store(in: &cancellables)
         
         connect()
     }
     
     private func connect() {
-        service.connect(user: sender)
+        connectCancellable = service.connect(user: sender)
             .sink { completion in
                 switch completion {
                     case .finished: print("socket connected")
@@ -48,8 +50,8 @@ class ChatViewModel {
                 }
             } receiveValue: { _ in
                 //TODO: -show connected state
+                print("socket connected")
             }
-            .store(in: &cancellables)
     }
     
     func sendMessage(_ text: String) {

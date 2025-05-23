@@ -20,7 +20,19 @@ class RemoteUserService: UserService {
         
         return URLSession.shared.dataTaskPublisher(for: url)
             .tryMap { data, response in
-                try JSONDecoder().decode([User].self, from: data)
+                
+                guard let code = (response as? HTTPURLResponse)?.statusCode else {
+                    let error = URLError(.badServerResponse)
+                    throw error
+                }
+                
+                guard code == 200 else {
+                    let error = URLError(.badServerResponse)
+                    throw error
+                }
+                
+                let list = try JSONDecoder().decode(ListUser.self, from: data)
+                return list.users
             }
             .eraseToAnyPublisher()
     }

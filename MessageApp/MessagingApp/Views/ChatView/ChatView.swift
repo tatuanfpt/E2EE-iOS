@@ -19,6 +19,8 @@ struct ChatView: View {
     
     var body: some View {
         VStack {
+            Text("Sender: \(viewModel.sender)")
+            Text("Receiver: \(viewModel.receiver)")
             MessageListView(messages: $viewModel.messages, isFocused: $isFocused)
                 .onTapGesture {
                     isFocused = false

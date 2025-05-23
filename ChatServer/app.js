@@ -6,13 +6,14 @@ const db = require("./db/index");
 const app = express();
 app.use(express.json());
 
+// Mount at base path
+app.use("/", chatRoutes);
+
 const http = require('http');
 const { Server } = require('socket.io');
 
 const server = http.createServer(app);
 const io = new Server(server);
-
-app.use(express.json());
 
 const connectedUsers = new Map(); // username -> socket
 
@@ -27,12 +28,18 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send-message', ({ sender, receiver, text }) => {
-    if (!sender || !receiver || !text) return;
-
+    console.log('💌 send-message start');
+    if (!sender || !receiver || !text) {
+      console.error("send-message error:", { sender, receiver, text });
+      return;
+    }
     const getUserId = db.prepare('SELECT id FROM users WHERE username = ?');
     const senderRow = getUserId.get(sender);
     const receiverRow = getUserId.get(receiver);
-    if (!senderRow || !receiverRow) return;
+    if (!senderRow || !receiverRow) {
+      console.error("send-message user not found:", { senderRow, receiverRow });
+      return;
+    }
 
     // Store message in DB
     const insert = db.prepare('INSERT INTO messages (senderId, receiverId, text) VALUES (?, ?, ?)');
@@ -42,6 +49,9 @@ io.on('connection', (socket) => {
     const receiverSocket = connectedUsers.get(receiver);
     if (receiverSocket) {
       receiverSocket.emit('receive-message', { from: sender, text });
+      console.log('💌 send-message completed');
+    } else {
+      console.error('send-message cannot find receiver', connectedUsers);
     }
   });
 

@@ -23,6 +23,10 @@ struct TextMessage: SocketData {
     let sender: String
     let receiver: String
     let message: String
+    
+    func socketRepresentation() -> SocketData {
+        return ["sender": sender, "receiver": receiver, "text": message]
+    }
 }
 
 class LocalSocketService: SocketService {
@@ -64,11 +68,15 @@ class LocalSocketService: SocketService {
     private func setupHandlers() {
 
         socket.on("receive-message") { [weak self] data, ack in
-            if let user = data[0] as? String,
-            let message = data[1] as? String {
+            if let dict = data.first as? [String: String],
+               let message = dict["text"],
+               let user = dict["from"]
+            {
                 print("📥 Message received: \(message)")
                 // You can post a notification or update the UI here
                 self?.subject.send(TextMessage(sender: user, receiver: "", message: message))
+            } else {
+                print("❌ invalid data \(data)")
             }
         }
 

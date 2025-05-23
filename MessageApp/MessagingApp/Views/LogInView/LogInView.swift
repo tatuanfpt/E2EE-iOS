@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LogInView: View {
-    @State private var email: String = "S"
+    @State private var email: String = "A"
     @State private var password: String = "S"
     
     @Bindable var viewModel: LoginViewModel
@@ -21,18 +21,6 @@ struct LogInView: View {
             Button("Login") {
                 viewModel.logIn(email: email, password: password)
             }
-            
-            if !viewModel.isLoggedIn {
-                Text("Login failed")
-                    .foregroundStyle(.red)
-            }
-            
-            NavigationLink(isActive: $viewModel.isLoggedIn) {
-                ConversationView(viewModel: ConversationViewModel(sender: email, service: RemoteUserService()))
-                    .toolbar(.hidden)
-            } label: {
-                EmptyView()
-            }
         }
     }
 }
@@ -42,12 +30,13 @@ import Combine
 @Observable
 class LoginViewModel {
     let service: any AuthenticationService<PasswordAuthentication>
-    var isLoggedIn: Bool = false
+    private let didLogin: (String) -> Void
     
     private var cancellables: Set<AnyCancellable> = []
     
-    init(service: any AuthenticationService<PasswordAuthentication>) {
+    init(service: any AuthenticationService<PasswordAuthentication>, didLogin: @escaping (String) -> Void) {
         self.service = service
+        self.didLogin = didLogin
     }
     
     func logIn(email: String, password: String) {
@@ -55,7 +44,7 @@ class LoginViewModel {
             .sink { completion in
                 print("logIn completed")
             } receiveValue: { [weak self] isLoggedIn in
-                self?.isLoggedIn = isLoggedIn
+                self?.didLogin(email)
             }
             .store(in: &cancellables)
 
@@ -63,5 +52,5 @@ class LoginViewModel {
 }
 
 #Preview {
-    LogInView(viewModel: LoginViewModel(service: NullAuthenticationService<PasswordAuthentication>()))
+    LogInView(viewModel: LoginViewModel(service: NullAuthenticationService<PasswordAuthentication>(), didLogin: { _ in }))
 }

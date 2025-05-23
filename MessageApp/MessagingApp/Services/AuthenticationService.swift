@@ -18,9 +18,13 @@ struct PasswordAuthentication {
     let password: String
 }
 
-struct User: Identifiable, Codable {
+struct User: Identifiable, Hashable, Codable {
     let id: Int
     let username: String
+}
+
+struct ListUser: Codable {
+    let users: [User]
 }
 
 final class PasswordAuthenticationService: AuthenticationService {

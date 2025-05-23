@@ -31,8 +31,8 @@ let mockMessages: [Message] = [
     ]
 
 let mockUsers: [User] = [
-    User(id: 1, username: "S"),
-    User(id: 2, username: "A")
+    User(id: 1, username: "Sinhlh"),
+    User(id: 2, username: "Anhlh")
 ]
 
 final class NullSocketService<User, Message>: SocketService {
