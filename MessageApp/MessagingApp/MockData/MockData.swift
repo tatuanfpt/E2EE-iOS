@@ -60,3 +60,9 @@ final class NullUserService: UserService {
         Empty<[User], Error>().eraseToAnyPublisher()
     }
 }
+
+final class NullMessageService: MessageService {
+    func fetchMessages(data: FetchMessageData) -> AnyPublisher<[Message], any Error> {
+        Empty<[Message], Error>().eraseToAnyPublisher()
+    }
+}

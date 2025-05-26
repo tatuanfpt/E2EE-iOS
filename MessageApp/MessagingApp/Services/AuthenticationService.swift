@@ -52,3 +52,68 @@ final class PasswordAuthenticationService: AuthenticationService {
         return subject.eraseToAnyPublisher()
     }
 }
+
+extension URLRequest {
+    enum HttpMethod: String {
+        case get = "GET"
+        case post = "POST"
+        case put = "PUT"
+        case patch = "PATCH"
+        case delete = "DELETE"
+    }
+    
+    func buildRequest(url: String, parameters: [String: Any]?, method: HttpMethod, headers: [String: String]?, token: String?, body: [String: Any]?) -> URLRequest {
+        var components = URLComponents(string: url)
+
+        // URLComponents(string: url) can't init with url params contains double quote
+        if components == nil, let urlQueryAllowed = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            components = URLComponents(string: urlQueryAllowed)
+        }
+        
+        if let parameters = parameters {
+            components?.addQueryParameters(params: parameters)
+        }
+
+        guard let urlWithParameters = components?.url else {
+            return URLRequest(url: URL(fileURLWithPath: ""))
+        }
+
+        var urlRequest = URLRequest(url: urlWithParameters)
+        urlRequest.httpMethod = method.rawValue
+        urlRequest.addApplicationJsonContentAndAcceptHeaders()
+
+        for (headerField, value) in headers ?? [:] {
+            urlRequest.addValue(value, forHTTPHeaderField: headerField)
+        }
+
+        if let token = token {
+            urlRequest.setBearerToken(token)
+        }
+
+        if let body = body, let data = try? JSONSerialization.data(withJSONObject: body) {
+            urlRequest.httpBody = data
+        }
+
+        return urlRequest
+    }
+    
+    public mutating func addApplicationJsonContentAndAcceptHeaders() {
+        let value = "application/json"
+        addValue(value, forHTTPHeaderField: "Content-Type")
+        addValue(value, forHTTPHeaderField: "Accept")
+    }
+    
+    public mutating func setBearerToken(_ token: String) {
+        setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
+}
+
+extension URLComponents {
+    mutating func addQueryParameters(params: [String: Any]) {
+        queryItems = [URLQueryItem]()
+        for (key, value) in params {
+            let queryItem = URLQueryItem(name: key, value: "\(value)")
+            queryItems?.append(queryItem)
+        }
+    }
+}

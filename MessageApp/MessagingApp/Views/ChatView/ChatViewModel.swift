@@ -5,6 +5,7 @@
 //  Created by SinhLH.AVI on 22/5/25.
 //
 
+import Foundation
 import Observation
 import Combine
 
@@ -14,14 +15,17 @@ class ChatViewModel {
     var sender: String
     var receiver: String
     let service: any SocketService<String, TextMessage>
+    let messageService: MessageService
     var messages: [Message] = []
     private var cancellable: AnyCancellable?
     private var connectCancellable: AnyCancellable?
+    private var fetchMessageCancellable: AnyCancellable?
     
-    init(sender: String, receiver: String, service: any SocketService<String, TextMessage>) {
+    init(sender: String, receiver: String, service: any SocketService<String, TextMessage>, messageService: MessageService) {
         self.sender = sender
         self.receiver = receiver
         self.service = service
+        self.messageService = messageService
     }
     
     func subscribe() {
@@ -57,5 +61,18 @@ class ChatViewModel {
     func sendMessage(_ text: String) {
         messages.append(Message(content: text, isFromCurrentUser: true))
         service.sendMessage(TextMessage(sender: sender, receiver: receiver, message: text))
+    }
+    
+    func fetchMessages() {
+        fetchMessageCancellable = messageService.fetchMessages(data: FetchMessageData(sender: sender, receiver: receiver))
+            .receive(on: DispatchQueue.main)
+            .sink { completion in
+                switch completion {
+                    case .finished: print("fetch finish")
+                case .failure(let error): print("❌ fetch get error: \(error.localizedDescription)")
+                }
+            } receiveValue: { [weak self] messages in
+                self?.messages = messages
+            }
     }
 }

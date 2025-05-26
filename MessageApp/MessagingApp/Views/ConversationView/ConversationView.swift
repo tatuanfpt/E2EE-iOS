@@ -25,7 +25,6 @@ struct ConversationView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    print("🙈 \(user)")
                     viewModel.select(user: user)
                 }
             }

@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
     // Emit to receiver if online
     const receiverSocket = connectedUsers.get(receiver);
     if (receiverSocket) {
-      receiverSocket.emit('receive-message', { from: sender, text });
+      receiverSocket.emit('receive-message', { from: sender, text, messageId });
       console.log('💌 send-message completed');
     } else {
       console.error('send-message cannot find receiver', connectedUsers);
@@ -66,6 +66,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// cryptor
 const crypto = require("crypto");
 
 function generateSalt(byteLength = 32) {

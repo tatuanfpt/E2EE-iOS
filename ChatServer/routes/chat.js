@@ -68,22 +68,25 @@ router.get("/users/chatted-with/:userId", (req, res) => {
     const getUserId = db.prepare('SELECT id FROM users WHERE username = ?');
     const a = getUserId.get(userA);
     const b = getUserId.get(userB);
-  
+    
     if (!a || !b) return res.status(404).json({ error: 'User not found' });
   
     const query = db.prepare(`
-      SELECT * FROM messages
-      WHERE (senderId = ? AND receiverId = ?)
-         OR (senderId = ? AND receiverId = ?)
-      ORDER BY createdAt
-    `);
+    SELECT messages.id, users.username AS sender, messages.receiverId, messages.text, messages.createdAt
+    FROM messages
+    JOIN users ON messages.senderId = users.id
+    WHERE (senderId = ? AND receiverId = ?)
+       OR (senderId = ? AND receiverId = ?)
+    ORDER BY messages.createdAt
+  `);
   
     const messages = query.all(a.id, b.id, b.id, a.id);
     res.json(messages);
+    console.log('GET messages: ', messages);
   });
 
   // POST /api/keys
-router.post("/", (req, res) => {
+router.post("/keys", (req, res) => {
   const { username, publicKey } = req.body;
 
   if (!username || !publicKey) {

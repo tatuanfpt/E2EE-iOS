@@ -10,6 +10,7 @@ final class Factory {
     private var conversationViewModel: ConversationViewModel?
     
     let socketService = LocalSocketService()
+    let messageService = RemoteMessageService()
     private var chatViewModel: ChatViewModel?
 }
 
@@ -31,7 +32,7 @@ extension Factory {
     
     func createChat(sender: String, receiver: String) -> some View {
         if chatViewModel == nil {
-            chatViewModel = ChatViewModel(sender: sender, receiver: receiver, service: socketService)
+            chatViewModel = ChatViewModel(sender: sender, receiver: receiver, service: socketService, messageService: messageService)
         }
         
         guard let chatViewModel = chatViewModel else {

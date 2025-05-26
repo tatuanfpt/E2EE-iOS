@@ -34,10 +34,11 @@ struct ChatView: View {
         .clipped()
         .onAppear {
             viewModel.subscribe()
+            viewModel.fetchMessages()
         }
     }
 }
 
 #Preview {
-    ChatView(viewModel: ChatViewModel(sender: "slh", receiver: "", service: NullSocketService<String, TextMessage>()))
+    ChatView(viewModel: ChatViewModel(sender: "slh", receiver: "", service: NullSocketService<String, TextMessage>(), messageService: NullMessageService()))
 }
