@@ -20,6 +20,7 @@ class ChatViewModel {
     var reachedTop: Bool = false
     
     private var firstMessageId: Int?
+    var lastMessageId: Int?
     private var cancellable: AnyCancellable?
     private var connectCancellable: AnyCancellable?
     private var fetchMessageCancellable: AnyCancellable?
@@ -29,6 +30,8 @@ class ChatViewModel {
         self.receiver = receiver
         self.service = service
         self.messageService = messageService
+            
+        fetchMessage()
     }
     
     func subscribe() {
@@ -71,24 +74,22 @@ class ChatViewModel {
         service.sendMessage(TextMessage(messageId: "", sender: sender, receiver: receiver, message: text))
     }
     
-    func fetchMessages() {
-        fetchMessageCancellable = messageService.fetchMessages(data: FetchMessageData(sender: sender, receiver: receiver))
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                switch completion {
-                    case .finished: print("fetch finish")
-                case .failure(let error):
-                    //TODO: -show error
-                    print("❌ fetch get error: \(error.localizedDescription)")
-                }
-            } receiveValue: { [weak self] messages in
-                self?.messages = messages
-                self?.firstMessageId = messages.first?.messageId
-            }
+    func loadFirstMessage() {
+        passthroughSubject.send(FetchMessageData(sender: sender, receiver: receiver))
     }
     
     func loadMoreMessages() {
-        fetchMessageCancellable = messageService.fetchMessages(data: FetchMessageData(sender: sender, receiver: receiver, before: firstMessageId))
+        passthroughSubject.send(FetchMessageData(sender: sender, receiver: receiver, before: firstMessageId, limit: 10))
+    }
+    
+    let passthroughSubject = PassthroughSubject<FetchMessageData, Never>()
+    
+    private func fetchMessage() {
+        fetchMessageCancellable = passthroughSubject
+            .delay(for: .seconds(2), scheduler: DispatchQueue.global())
+            .flatMap(maxPublishers: .max(1)) { data in
+                self.messageService.fetchMessages(data: data)
+            }
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 switch completion {
@@ -98,7 +99,15 @@ class ChatViewModel {
                     print("❌ fetch get error: \(error.localizedDescription)")
                 }
             } receiveValue: { [weak self] messages in
-                self?.messages = messages
+                guard let self else { return }
+                self.messages.insert(contentsOf: messages, at: 0)
+                if let firstMessageId = messages.first?.messageId {
+                    self.firstMessageId = firstMessageId
+                }
+                if let lastMessageId = messages.last?.messageId {
+                    self.lastMessageId = lastMessageId
+                }
+                self.reachedTop = false
             }
     }
 }

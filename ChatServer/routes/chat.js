@@ -8,7 +8,7 @@ router.get("/users", (req, res) => {
       const stmt = db.prepare("SELECT id, username FROM users");
       const users = stmt.all();
       res.json({ users });
-      console.log('GET user: ', users);
+    //   console.log('GET user: ', users);
     } catch (err) {
       console.error("Error fetching users:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -64,9 +64,13 @@ router.get("/users/chatted-with/:userId", (req, res) => {
   // 🔹 Fetch messages between two users
 router.get('/messages/:userA/:userB', (req, res) => {
   const { userA, userB } = req.params;
+  console.log('GET query: ', req.query);
   const before = parseInt(req.query.before) || Number.MAX_SAFE_INTEGER;
-  const limit = parseInt(req.query.limit) || 20;
+  const limit = parseInt(req.query.limit) || 10;
 
+  console.log('GET before: ', before);
+  console.log('GET limit: ', limit);
+  
   const getUserId = db.prepare('SELECT id FROM users WHERE username = ?');
   const a = getUserId.get(userA);
   const b = getUserId.get(userB);
@@ -84,7 +88,8 @@ router.get('/messages/:userA/:userB', (req, res) => {
   `);
 
   const messages = stmt.all(a.id, b.id, b.id, a.id, before, limit);
-  res.json(messages.reverse()); // Optional: return ascending for UI
+  res.json(messages.reverse()); 
+  console.log('GET message: ', messages);
 });
 
   // POST /api/keys

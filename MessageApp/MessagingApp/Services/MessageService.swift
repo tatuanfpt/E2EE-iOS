@@ -37,11 +37,19 @@ struct MessageResponse: Codable {
 class RemoteMessageService: MessageService {
     func fetchMessages(data: FetchMessageData) -> AnyPublisher<[Message], any Error> {
         let sender = data.sender
-        guard let url = URL(string: "http://localhost:3000/messages/\(data.sender)/\(data.receiver)") else {
-            return Fail<[Message], Error>(error: NSError(domain: "Invalid URL", code: 0, userInfo: nil)).eraseToAnyPublisher()
+        let urlString = "http://localhost:3000/messages/\(data.sender)/\(data.receiver)"
+        
+        var params = [String: Any]()
+        if let before = data.before {
+            params["before"] = before
+        }
+        if let limit = data.limit {
+            params["limit"] = limit
         }
         
-        return URLSession.shared.dataTaskPublisher(for: url)
+        let urlRequest = buildRequest(url: urlString, parameters: params)
+        
+        return URLSession.shared.dataTaskPublisher(for: urlRequest)
             .tryMap { data, response in
                 
                 guard let code = (response as? HTTPURLResponse)?.statusCode else {
