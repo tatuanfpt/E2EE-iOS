@@ -19,7 +19,9 @@ protocol SocketService<User, Message> {
     func subscribeToIncomingMessages() -> AnyPublisher<Message, Error>
 }
 
+// TODO: should extract to send and receive model
 struct TextMessage: SocketData {
+    let messageId: String
     let sender: String
     let receiver: String
     let message: String
@@ -69,11 +71,12 @@ class LocalSocketService: SocketService {
         socket.on("receive-message") { [weak self] data, ack in
             if let dict = data.first as? [String: String],
                let message = dict["text"],
-               let user = dict["from"]
+               let user = dict["from"],
+               let id = dict["messageId"]
             {
                 print("📥 Message received: \(message)")
                 // You can post a notification or update the UI here
-                self?.subject.send(TextMessage(sender: user, receiver: "", message: message))
+                self?.subject.send(TextMessage(messageId: id, sender: user, receiver: "", message: message))
             } else {
                 print("❌ invalid data \(data)")
             }

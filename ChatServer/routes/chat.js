@@ -62,28 +62,30 @@ router.get("/users/chatted-with/:userId", (req, res) => {
   });
   
   // 🔹 Fetch messages between two users
-  router.get('/messages/:userA/:userB', (req, res) => {
-    const { userA, userB } = req.params;
-  
-    const getUserId = db.prepare('SELECT id FROM users WHERE username = ?');
-    const a = getUserId.get(userA);
-    const b = getUserId.get(userB);
-    
-    if (!a || !b) return res.status(404).json({ error: 'User not found' });
-  
-    const query = db.prepare(`
+router.get('/messages/:userA/:userB', (req, res) => {
+  const { userA, userB } = req.params;
+  const before = parseInt(req.query.before) || Number.MAX_SAFE_INTEGER;
+  const limit = parseInt(req.query.limit) || 20;
+
+  const getUserId = db.prepare('SELECT id FROM users WHERE username = ?');
+  const a = getUserId.get(userA);
+  const b = getUserId.get(userB);
+  if (!a || !b) return res.status(404).json({ error: 'User not found' });
+
+  const stmt = db.prepare(`
     SELECT messages.id, users.username AS sender, messages.receiverId, messages.text, messages.createdAt
     FROM messages
-    JOIN users ON messages.senderId = users.id
-    WHERE (senderId = ? AND receiverId = ?)
-       OR (senderId = ? AND receiverId = ?)
-    ORDER BY messages.createdAt
+    JOIN users ON users.id = messages.senderId
+    WHERE
+      ((senderId = ? AND receiverId = ?) OR (senderId = ? AND receiverId = ?))
+      AND messages.id < ?
+    ORDER BY messages.id DESC
+    LIMIT ?
   `);
-  
-    const messages = query.all(a.id, b.id, b.id, a.id);
-    res.json(messages);
-    console.log('GET messages: ', messages);
-  });
+
+  const messages = stmt.all(a.id, b.id, b.id, a.id, before, limit);
+  res.json(messages.reverse()); // Optional: return ascending for UI
+});
 
   // POST /api/keys
 router.post("/keys", (req, res) => {

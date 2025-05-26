@@ -16,10 +16,9 @@ struct ConversationView: View {
     
     var body: some View {
         VStack {
-            Text("\(viewModel.users.count)")
+            Text("\(viewModel.sender)")
             List(viewModel.users) { user in
                 HStack {
-                    Text("\(user.id)")
                     Text(user.username)
                     Spacer()
                 }
@@ -54,6 +53,7 @@ class ConversationViewModel {
     
     func fetchUsers() {
         service.fetchUsers()
+            .receive(on: DispatchQueue.main)
             .sink { completion in
                 switch completion {
                 case .failure(let error):
@@ -62,7 +62,6 @@ class ConversationViewModel {
                 case .finished: break
                 }
             } receiveValue: { [weak self] users in
-                print("🙈 list user \(users.count)")
                 self?.users = users
             }
             .store(in: &cancellables)

@@ -43,7 +43,8 @@ io.on('connection', (socket) => {
 
     // Store message in DB
     const insert = db.prepare('INSERT INTO messages (senderId, receiverId, text) VALUES (?, ?, ?)');
-    insert.run(senderRow.id, receiverRow.id, text);
+    const result = insert.run(senderRow.id, receiverRow.id, text);
+    const messageId = result.lastInsertRowid;
 
     // Emit to receiver if online
     const receiverSocket = connectedUsers.get(receiver);

@@ -17,6 +17,9 @@ class ChatViewModel {
     let service: any SocketService<String, TextMessage>
     let messageService: MessageService
     var messages: [Message] = []
+    var reachedTop: Bool = false
+    
+    private var firstMessageId: Int?
     private var cancellable: AnyCancellable?
     private var connectCancellable: AnyCancellable?
     private var fetchMessageCancellable: AnyCancellable?
@@ -29,15 +32,20 @@ class ChatViewModel {
     }
     
     func subscribe() {
-        print("🙈 sender: \(sender) to receiver: \(receiver)")
         cancellable = service.subscribeToIncomingMessages()
             .sink { completion in
                 switch completion {
                 case .finished: print("socket finished")
-                case .failure(let error): print("socket get error: \(error.localizedDescription)")
+                case .failure(let error):
+                    //TODO: -should implement retry mechanism
+                    print("socket get error: \(error.localizedDescription)")
                 }
             } receiveValue: { [weak self] response in
-                self?.messages.append(Message(content: response.message, isFromCurrentUser: false))
+                if let id = Int(response.messageId) {
+                    self?.messages.append(Message(messageId: id, content: response.message, isFromCurrentUser: false))
+                } else {
+                    print("❌ cannot get id from message")
+                }
             }
         
         connect()
@@ -59,8 +67,8 @@ class ChatViewModel {
     }
     
     func sendMessage(_ text: String) {
-        messages.append(Message(content: text, isFromCurrentUser: true))
-        service.sendMessage(TextMessage(sender: sender, receiver: receiver, message: text))
+        messages.append(Message(messageId: 0, content: text, isFromCurrentUser: true))
+        service.sendMessage(TextMessage(messageId: "", sender: sender, receiver: receiver, message: text))
     }
     
     func fetchMessages() {
@@ -69,7 +77,25 @@ class ChatViewModel {
             .sink { completion in
                 switch completion {
                     case .finished: print("fetch finish")
-                case .failure(let error): print("❌ fetch get error: \(error.localizedDescription)")
+                case .failure(let error):
+                    //TODO: -show error
+                    print("❌ fetch get error: \(error.localizedDescription)")
+                }
+            } receiveValue: { [weak self] messages in
+                self?.messages = messages
+                self?.firstMessageId = messages.first?.messageId
+            }
+    }
+    
+    func loadMoreMessages() {
+        fetchMessageCancellable = messageService.fetchMessages(data: FetchMessageData(sender: sender, receiver: receiver, before: firstMessageId))
+            .receive(on: DispatchQueue.main)
+            .sink { completion in
+                switch completion {
+                    case .finished: print("fetch finish")
+                case .failure(let error):
+                    //TODO: -show error
+                    print("❌ fetch get error: \(error.localizedDescription)")
                 }
             } receiveValue: { [weak self] messages in
                 self?.messages = messages

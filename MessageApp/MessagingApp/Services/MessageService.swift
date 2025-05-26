@@ -11,6 +11,15 @@ import Combine
 struct FetchMessageData {
     let sender: String
     let receiver: String
+    let before: Int?
+    let limit: Int?
+    
+    init(sender: String, receiver: String, before: Int? = nil, limit: Int? = nil) {
+        self.sender = sender
+        self.receiver = receiver
+        self.before = before
+        self.limit = limit
+    }
 }
 
 protocol MessageService {
@@ -46,7 +55,7 @@ class RemoteMessageService: MessageService {
                 }
                 
                 let list = try JSONDecoder().decode([MessageResponse].self, from: data)
-                return list.map { Message(content: $0.text, isFromCurrentUser: $0.sender == sender)}
+                return list.map { Message(messageId: $0.id, content: $0.text, isFromCurrentUser: $0.sender == sender)}
             }
             .eraseToAnyPublisher()
     }

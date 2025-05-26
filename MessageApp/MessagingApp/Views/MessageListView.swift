@@ -9,29 +9,37 @@ import SwiftUI
 
 struct Message: Identifiable, Hashable {
     let id = UUID()
+    let messageId: Int
     let content: String
     let isFromCurrentUser: Bool
 }
 
 struct MessageListView: View {
+    @Binding var reachedTop: Bool
     @Binding var messages: [Message]
     @FocusState<Bool>.Binding var isFocused: Bool
     
     var body: some View {
         ScrollViewReader { proxy in
-            List(messages) { message in
-                HStack {
-                    if message.isFromCurrentUser {
-                        Spacer()
+            ScrollView {
+                ForEach(messages) { message in
+                    LazyVStack(alignment: .leading) {
+                        HStack {
+                            if message.isFromCurrentUser {
+                                Spacer()
+                            }
+                            MessageView(content: message.content)
+                        }
+                        .id(message.id)
+                        if reachedTop {
+                            ProgressView()
+                        }
                     }
-                    MessageView(content: message.content)
                 }
-                .listRowSeparator(.hidden)
-                .id(message.id)
             }
-            .listStyle(.plain)
             .scrollIndicators(.hidden)
             .onChange(of: messages, { _, _ in
+                //TODO: If the user is scrolling up, do not scroll to the bottom.
                 scrollToBottom(proxy)
             })
             .onChange(of: isFocused, { _, _ in
@@ -52,5 +60,5 @@ struct MessageListView: View {
 
 #Preview {
     @Previewable @FocusState var isFocused: Bool
-    MessageListView(messages: Binding.constant(mockMessages), isFocused: $isFocused)
+    MessageListView(reachedTop: Binding.constant(false), messages: Binding.constant(mockMessages), isFocused: $isFocused)
 }
