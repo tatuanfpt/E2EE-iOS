@@ -82,4 +82,73 @@ router.get("/users/chatted-with/:userId", (req, res) => {
     res.json(messages);
   });
 
+  // POST /api/keys
+router.post("/", (req, res) => {
+  const { username, publicKey } = req.body;
+
+  if (!username || !publicKey) {
+    return res.status(400).json({ error: "Missing username or publicKey" });
+  }
+
+  const user = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  // Insert or update the user's public key
+  db.prepare(`
+    INSERT INTO secure_keys (ownerId, encryptKey)
+    VALUES (?, ?)
+    ON CONFLICT(ownerId) DO UPDATE SET encryptKey = excluded.encryptKey
+  `).run(user.id, publicKey);
+
+  res.json({ success: true });
+});
+
+// POST /api/keys/session
+router.post("/session", (req, res) => {
+  const { senderUsername, receiverUsername } = req.body;
+
+  const sender = db.prepare("SELECT id FROM users WHERE username = ?").get(senderUsername);
+  const receiver = db.prepare("SELECT id FROM users WHERE username = ?").get(receiverUsername);
+
+  if (!sender || !receiver) {
+    return res.status(404).json({ error: "Invalid usernames" });
+  }
+
+  const salt = generateSalt();
+
+  db.prepare(`
+    INSERT INTO message_keys (senderId, receiverId, salt)
+    VALUES (?, ?, ?)
+  `).run(sender.id, receiver.id, salt);
+
+  res.json({ salt });
+});
+
+// GET /api/keys/session?sender=S&receiver=A
+router.get("/session", (req, res) => {
+  const { sender, receiver } = req.query;
+
+  const s = db.prepare("SELECT id FROM users WHERE username = ?").get(sender);
+  const r = db.prepare("SELECT id FROM users WHERE username = ?").get(receiver);
+
+  if (!s || !r) {
+    return res.status(404).json({ error: "Invalid usernames" });
+  }
+
+  const session = db.prepare(`
+    SELECT salt FROM message_keys
+    WHERE senderId = ? AND receiverId = ?
+    ORDER BY createdAt DESC LIMIT 1
+  `).get(s.id, r.id);
+
+  if (!session) {
+    return res.status(404).json({ error: "Session not found" });
+  }
+
+  res.json({ salt: session.salt });
+});
+
+
 module.exports = router;

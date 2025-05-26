@@ -66,6 +66,12 @@ io.on('connection', (socket) => {
   });
 });
 
+const crypto = require("crypto");
+
+function generateSalt(byteLength = 32) {
+  return crypto.randomBytes(byteLength).toString("base64");
+}
+
 server.listen(3000, () => {
   console.log('Server listening on http://localhost:3000');
 });

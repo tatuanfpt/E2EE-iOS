@@ -40,6 +40,29 @@ if (isNewDatabase) {
   )
 `).run();
 
+    // secure_keys
+    db.prepare(`
+  CREATE TABLE IF NOT EXISTS secure_keys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ownerId INTEGER NOT NULL,
+    encryptKey TEXT NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ownerId) REFERENCES users(id)
+  )
+`).run();
+
+// message_keys
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS message_keys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    senderId INTEGER NOT NULL,
+    receiverId INTEGER NOT NULL,
+    salt TEXT NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`).run();
+
+
     console.log('Database initialized.');
 } else {
     console.log('Database already exists. Skipping initialization.');
