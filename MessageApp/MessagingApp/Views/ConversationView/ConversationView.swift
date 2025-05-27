@@ -31,6 +31,7 @@ struct ConversationView: View {
         .onAppear {
             viewModel.fetchUsers()
         }
+        .toolbar(.hidden)
         .navigationTitle("Conversation")
     }
 }

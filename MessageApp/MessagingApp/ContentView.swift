@@ -14,11 +14,18 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack(path: $flow.path) {
-            LogInView(viewModel: LoginViewModel(service: PasswordAuthenticationService(), didLogin: { sender in
+            factory.createRootView(didLogin: {
+                flow.start(type: .pushTo(ConversationDestination.logIn))
+            }, didGoToConversation: { sender in
                 flow.start(type: .pushTo(ConversationDestination.conversation(sender: sender)))
-            }))
+            })
+                
             .navigationDestination(for: ConversationDestination.self) { destination in
                 switch destination {
+                case .logIn:
+                    factory.createLogIn { sender in
+                        flow.start(type: .pushTo(ConversationDestination.conversation(sender: sender)))
+                    }
                 case.conversation(let sender):
                     factory.createConversation(sender: sender, didTapItem: { sender, receiver in
                         flow.start(type: .pushTo(ConversationDestination.chat(sender: sender, receiver: receiver)))

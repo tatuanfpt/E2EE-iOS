@@ -75,11 +75,11 @@ class ChatViewModel {
     }
     
     func loadFirstMessage() {
-        passthroughSubject.send(FetchMessageData(sender: sender, receiver: receiver))
+        passthroughSubject.send(FetchMessageData(sender: sender, receiver: receiver, firstLoad: true))
     }
     
     func loadMoreMessages() {
-        passthroughSubject.send(FetchMessageData(sender: sender, receiver: receiver, before: firstMessageId, limit: 10))
+        passthroughSubject.send(FetchMessageData(sender: sender, receiver: receiver, before: firstMessageId, limit: 10, firstLoad: false))
     }
     
     let passthroughSubject = PassthroughSubject<FetchMessageData, Never>()
@@ -89,6 +89,7 @@ class ChatViewModel {
             .delay(for: .seconds(2), scheduler: DispatchQueue.global())
             .flatMap(maxPublishers: .max(1)) { data in
                 self.messageService.fetchMessages(data: data)
+                    .replaceError(with: [])
             }
             .receive(on: DispatchQueue.main)
             .sink { completion in

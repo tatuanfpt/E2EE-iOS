@@ -16,12 +16,13 @@ struct LogInView: View {
     var body: some View {
         VStack {
             TextField("Email", text: $email)
-            TextField("Password", text: $password)
+//            TextField("Password", text: $password)
             
             Button("Login") {
                 viewModel.logIn(email: email, password: password)
             }
         }
+        .toolbar(.hidden)
     }
 }
 

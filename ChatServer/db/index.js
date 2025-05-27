@@ -17,7 +17,7 @@ const isNewDatabase = !fs.existsSync(DB_PATH);
 // Open the database (creates it if it doesn't exist)
 const db = new Database(DB_PATH);
 
-if (isNewDatabase) {
+if (true) {
     console.log('Creating new database and initializing tables...');
     // user
     db.prepare(`
@@ -40,11 +40,12 @@ if (isNewDatabase) {
   )
 `).run();
 
+// db.prepare(`DROP TABLE IF EXISTS secure_keys`).run();
     // secure_keys
     db.prepare(`
   CREATE TABLE IF NOT EXISTS secure_keys (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ownerId INTEGER NOT NULL,
+    ownerId INTEGER UNIQUE NOT NULL,
     encryptKey TEXT NOT NULL,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ownerId) REFERENCES users(id)

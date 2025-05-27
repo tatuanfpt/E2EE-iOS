@@ -35,13 +35,19 @@ class LocalSocketService: SocketService {
     typealias Message = TextMessage
     typealias User = String
     
-    private var manager: SocketManager
-    private var socket: SocketIOClient
+    private let manager: SocketManager
+    private let socket: SocketIOClient
+    private let encryptService: EncryptService
+    private let decryptService: DecryptService
+    private let keyStore: KeyStoreService
     
     private let subject = PassthroughSubject<Message, Error>()
     private let connectSubject = PassthroughSubject<Void, Error>()
 
-    init() {
+    init(encryptService: EncryptService, decryptService: DecryptService, keyStore: KeyStoreService) {
+        self.encryptService = encryptService
+        self.decryptService = decryptService
+        self.keyStore = keyStore
         manager = SocketManager(socketURL: URL(string: "http://localhost:3000")!, config: [.log(false), .compress])
         socket = manager.defaultSocket
         
@@ -69,14 +75,17 @@ class LocalSocketService: SocketService {
     private func setupHandlers() {
 
         socket.on("receive-message") { [weak self] data, ack in
-            if let dict = data.first as? [String: String],
-               let message = dict["text"],
-               let user = dict["from"],
-               let id = dict["messageId"]
+            if let dict = data.first as? [String: Any],
+               let message = dict["text"] as? String,
+               let user = dict["from"] as? String,
+               let id = dict["messageId"] as? Int
             {
+                guard let self else { return }
                 print("📥 Message received: \(message)")
                 // You can post a notification or update the UI here
-                self?.subject.send(TextMessage(messageId: id, sender: user, receiver: "", message: message))
+                let decryptedMessage = decryptMessage(message: message)
+                subject.send(TextMessage(messageId: String("\(id)"), sender: user, receiver: "", message: decryptedMessage))
+                
             } else {
                 print("❌ invalid data \(data)")
             }
@@ -90,6 +99,27 @@ class LocalSocketService: SocketService {
             print("❌ Socket error \(error)")
         }
     }
+    
+    private func decryptMessage(message: String) -> String {
+        do {
+            guard let messageData = Data(base64Encoded: message),
+                  let key = keyStore.retrieve(key: .secureKey) as? Data else {
+                print("❌ cannot convert message to data")
+                return ""
+            }
+
+            let decryptedMessage = try decryptService.decryptMessage(with: key, combined: messageData)
+            guard let result = String(data: decryptedMessage, encoding: .utf8) else {
+                print("❌ cannot convert data to message")
+                return ""
+            }
+            return result
+            
+        } catch {
+            print("❌ cannot decrypt message")
+        }
+        return ""
+    }
 
     func sendMessage(_ message: Message) {
         if socket.status != .connected {
@@ -97,7 +127,25 @@ class LocalSocketService: SocketService {
             return
         }
         print("📤 Sending: \(message)")
-        socket.emit("send-message", message)
+        let encryptMessage = encryptMessage(message: message.message)
+        let encryptedMessage: Message = Message(messageId: message.messageId, sender: message.sender, receiver: message.receiver, message: encryptMessage)
+        socket.emit("send-message", encryptedMessage)
+    }
+    
+    private func encryptMessage(message: String) -> String {
+        guard let messageData = message.data(using: .utf8) else {
+            print("❌ cannot convert message to data")
+            return ""
+        }
+        
+        guard let key = keyStore.retrieve(key: .secureKey) as? Data,
+              let encryptedMessageData = try? encryptService.encryptMessage(with: key, plainText: messageData) else {
+            print("❌ cannot encrypt message")
+            return ""
+        }
+        
+        let encryptedMessageString = encryptedMessageData.base64EncodedString()
+        return encryptedMessageString
     }
     
     func subscribeToIncomingMessages() -> AnyPublisher<Message, Error> {

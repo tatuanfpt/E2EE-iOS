@@ -8,6 +8,7 @@ import SwiftUI
 
 
 enum ConversationDestination: Hashable {
+    case logIn
     case conversation(sender: String)
     case chat(sender: String, receiver: String)
 }

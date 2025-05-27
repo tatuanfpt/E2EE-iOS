@@ -9,13 +9,39 @@ final class Factory {
     private let userService = RemoteUserService()
     private var conversationViewModel: ConversationViewModel?
     
-    let socketService = LocalSocketService()
-    let messageService = RemoteMessageService()
+    let keyStore = UserDefaultsKeyStoreService()
     private var chatViewModel: ChatViewModel?
+    
+    
+    private var loginViewModel: LoginViewModel?
 }
 
 // Root
 extension Factory {
+    func createRootView(didLogin: @escaping () -> Void, didGoToConversation: @escaping (String) -> Void) -> some View {
+        Text("Loading")
+            .onAppear {
+                guard let dict = self.keyStore.retrieve(key: ) as? [String: Data] else {
+                    didLogin()
+                    return
+                }
+                didGoToConversation(dict.keys.first!)
+            }
+    }
+    
+    func createLogIn(didLogin: @escaping (String) -> Void) -> some View {
+        if loginViewModel == nil {
+            let secureKeyService = P256SecureKeyService()
+            let authenticationService = PasswordAuthenticationService(secureKeyService: secureKeyService, keyStore: keyStore)
+            loginViewModel = LoginViewModel(service: authenticationService, didLogin: didLogin)
+            keyStore.store(key: .isLogIn, value: true)
+        }
+        guard let loginViewModel = loginViewModel else {
+            fatalError("loginViewModel need to be set before use ")
+        }
+        
+        return LogInView(viewModel: loginViewModel)
+    }
     func createConversation(sender: String, didTapItem: @escaping (String, String) -> Void) -> some View {
         if conversationViewModel == nil {
             conversationViewModel = ConversationViewModel(sender: sender, service: userService, didTapItem: didTapItem)
@@ -32,6 +58,11 @@ extension Factory {
     
     func createChat(sender: String, receiver: String) -> some View {
         if chatViewModel == nil {
+            let encryptService = AESEncryptService()
+            let decryptService = AESDecryptService()
+            let secureKeyService = P256SecureKeyService()
+            let messageService = RemoteMessageService(secureKey: secureKeyService, keyStore: keyStore, decryptService: decryptService)
+            let socketService = LocalSocketService(encryptService: encryptService, decryptService: decryptService, keyStore: keyStore)
             chatViewModel = ChatViewModel(sender: sender, receiver: receiver, service: socketService, messageService: messageService)
         }
         
