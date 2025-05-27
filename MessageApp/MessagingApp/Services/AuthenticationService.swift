@@ -29,7 +29,7 @@ struct ListUser: Codable {
 
 extension String {
     static let secureKey = "SECURE_KEY"
-    static let isLogIn = "IS_LOG_IN"
+    static let loggedInUserKey = "LOGGED_IN_USER"
 }
 
 final class PasswordAuthenticationService: AuthenticationService {
@@ -50,6 +50,7 @@ final class PasswordAuthenticationService: AuthenticationService {
                 return self.sendPublicKey(user: data.email, publicKey:  exchangeKey.publicKey)
             }
             .map { _ in
+                self.keyStore.store(key: .loggedInUserKey, value: data.email)
                 return true
             }
             .first()

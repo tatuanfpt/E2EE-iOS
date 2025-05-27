@@ -111,9 +111,6 @@ class RemoteMessageService: MessageService {
     
     private func generateSecreteKey(salt: Data, publicKey: Data, privateKey: Data) throws -> Data {
         let sharedInfo = "Message".data(using: .utf8)!
-        print("🔑 publickey ", publicKey.asHexString)
-        print("🔑 salt ", salt.asHexString)
-        print("🔑 privateKey ", privateKey.asHexString)
         return try secureKey.generateSecureKey(data: P256KeyData(privateKey: privateKey, publicKey: publicKey, salt: salt, hashFunction: SHA256.self, sharedInfo: sharedInfo, outputByteCount: 32))
     }
     
@@ -127,7 +124,8 @@ class RemoteMessageService: MessageService {
             .tryMap { publicKey, salt -> (Data, Data, Data) in
                 guard let publicKeyData = Data(base64Encoded: publicKey),
                       let saltData = Data(base64Encoded: salt),
-                      let privateKey = self.keyStore.retrieve(key: data.sender) else {
+                      let privateKey: Data? = self.keyStore.retrieve(key: data.sender),
+                      let privateKey = privateKey else {
                     throw NSError(domain: "Invalid base64 string", code: 0, userInfo: nil)
                 }
                 return (publicKeyData, saltData, privateKey)
@@ -136,7 +134,6 @@ class RemoteMessageService: MessageService {
                 return try self.generateSecreteKey(salt: salt, publicKey: publicKey, privateKey: privateKey)
             }
             .flatMap { secureKey in
-//                print("🔑 \(secureKey.asHexString)")
                 self.keyStore.store(key: .secureKey, value: secureKey)
                 return self.fetchEncryptedMessages(data: data)
                     .map { messages in

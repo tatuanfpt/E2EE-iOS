@@ -56,7 +56,7 @@ class LocalSocketService: SocketService {
     
     func connect(user: User) -> AnyPublisher<Void, Error> {
         socket.on(clientEvent: .connect) { [weak self] data, ack in
-            print("🔌 Socket connected \(self?.socket.status)")
+            debugPrint("🔌 Socket connected \(self?.socket.status)")
             self?.registerUser(user)
         }
         
@@ -66,7 +66,7 @@ class LocalSocketService: SocketService {
     
     private func registerUser(_ user: User) {
         socket.on("register") { [weak self] _, _ in
-            print("🔌 Socket registered successfully with user: \(user) - \(self?.socket.status)")
+            debugPrint("🔌 Socket registered successfully with user: \(user) - \(self?.socket.status)")
             self?.connectSubject.send(())
         }
         socket.emit("register", user)
@@ -81,52 +81,53 @@ class LocalSocketService: SocketService {
                let id = dict["messageId"] as? Int
             {
                 guard let self else { return }
-                print("📥 Message received: \(message)")
+                debugPrint("📥 Message received: \(message)")
                 // You can post a notification or update the UI here
                 let decryptedMessage = decryptMessage(message: message)
                 subject.send(TextMessage(messageId: String("\(id)"), sender: user, receiver: "", message: decryptedMessage))
                 
             } else {
-                print("❌ invalid data \(data)")
+                debugPrint("❌ invalid data \(data)")
             }
         }
 
         socket.on(clientEvent: .disconnect) { data, ack in
-            print("❌ Socket disconnected")
+            debugPrint("❌ Socket disconnected")
         }
         
         socket.on(clientEvent: .error) { error, ack in
-            print("❌ Socket error \(error)")
+            debugPrint("❌ Socket error \(error)")
         }
     }
     
     private func decryptMessage(message: String) -> String {
         do {
             guard let messageData = Data(base64Encoded: message),
-                  let key = keyStore.retrieve(key: .secureKey) as? Data else {
-                print("❌ cannot convert message to data")
+                  let key: Data? = keyStore.retrieve(key: .secureKey),
+                  let key = key else {
+                debugPrint("❌ cannot convert message to data")
                 return ""
             }
 
             let decryptedMessage = try decryptService.decryptMessage(with: key, combined: messageData)
             guard let result = String(data: decryptedMessage, encoding: .utf8) else {
-                print("❌ cannot convert data to message")
+                debugPrint("❌ cannot convert data to message")
                 return ""
             }
             return result
             
         } catch {
-            print("❌ cannot decrypt message")
+            debugPrint("❌ cannot decrypt message")
         }
         return ""
     }
 
     func sendMessage(_ message: Message) {
         if socket.status != .connected {
-            print("❌ Socket not connected yet \(socket.status)")
+            debugPrint("❌ Socket not connected yet \(socket.status)")
             return
         }
-        print("📤 Sending: \(message)")
+        debugPrint("📤 Sending: \(message)")
         let encryptMessage = encryptMessage(message: message.message)
         let encryptedMessage: Message = Message(messageId: message.messageId, sender: message.sender, receiver: message.receiver, message: encryptMessage)
         socket.emit("send-message", encryptedMessage)
@@ -134,13 +135,14 @@ class LocalSocketService: SocketService {
     
     private func encryptMessage(message: String) -> String {
         guard let messageData = message.data(using: .utf8) else {
-            print("❌ cannot convert message to data")
+            debugPrint("❌ cannot convert message to data")
             return ""
         }
         
-        guard let key = keyStore.retrieve(key: .secureKey) as? Data,
+        guard let key: Data? = keyStore.retrieve(key: .secureKey),
+              let key = key,
               let encryptedMessageData = try? encryptService.encryptMessage(with: key, plainText: messageData) else {
-            print("❌ cannot encrypt message")
+            debugPrint("❌ cannot encrypt message")
             return ""
         }
         

@@ -25,12 +25,14 @@ class ChatViewModel {
     private var connectCancellable: AnyCancellable?
     private var fetchMessageCancellable: AnyCancellable?
     
-    init(sender: String, receiver: String, service: any SocketService<String, TextMessage>, messageService: MessageService) {
+    private let didTapBack: () -> Void
+    
+    init(sender: String, receiver: String, service: any SocketService<String, TextMessage>, messageService: MessageService, didTapBack: @escaping () -> Void) {
         self.sender = sender
         self.receiver = receiver
         self.service = service
         self.messageService = messageService
-            
+        self.didTapBack = didTapBack
         fetchMessage()
     }
     
@@ -38,16 +40,16 @@ class ChatViewModel {
         cancellable = service.subscribeToIncomingMessages()
             .sink { completion in
                 switch completion {
-                case .finished: print("socket finished")
+                case .finished: debugPrint("socket finished")
                 case .failure(let error):
                     //TODO: -should implement retry mechanism
-                    print("socket get error: \(error.localizedDescription)")
+                    debugPrint("socket get error: \(error.localizedDescription)")
                 }
             } receiveValue: { [weak self] response in
                 if let id = Int(response.messageId) {
                     self?.messages.append(Message(messageId: id, content: response.message, isFromCurrentUser: false))
                 } else {
-                    print("❌ cannot get id from message")
+                    debugPrint("❌ cannot get id from message")
                 }
             }
         
@@ -58,14 +60,14 @@ class ChatViewModel {
         connectCancellable = service.connect(user: sender)
             .sink { completion in
                 switch completion {
-                    case .finished: print("socket connected")
+                    case .finished: debugPrint("socket connected")
                 case .failure(let error):
                     //TODO: -show no connection state
-                    print("socket get error: \(error.localizedDescription)")
+                    debugPrint("socket get error: \(error.localizedDescription)")
                 }
             } receiveValue: { _ in
                 //TODO: -show connected state
-                print("socket connected")
+                debugPrint("socket connected")
             }
     }
     
@@ -94,10 +96,10 @@ class ChatViewModel {
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 switch completion {
-                    case .finished: print("fetch finish")
+                    case .finished: debugPrint("fetch finish")
                 case .failure(let error):
                     //TODO: -show error
-                    print("❌ fetch get error: \(error.localizedDescription)")
+                    debugPrint("❌ fetch get error: \(error.localizedDescription)")
                 }
             } receiveValue: { [weak self] messages in
                 guard let self else { return }
@@ -110,5 +112,10 @@ class ChatViewModel {
                 }
                 self.reachedTop = false
             }
+    }
+    
+    func reset() {
+        didTapBack()
+        messages = []
     }
 }

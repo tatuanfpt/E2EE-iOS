@@ -8,18 +8,18 @@
 import Foundation
 
 public protocol KeyStoreService {
-    func store(key: String, value: Data)
-    func retrieve(key: String) -> Data?
+    func store<T>(key: String, value: T)
+    func retrieve<T>(key: String) -> T?
 }
 
 final class UserDefaultsKeyStoreService: KeyStoreService {
     private let userDefaults = UserDefaults.standard
     
-    func store(key: String, value: Data) {
+    func store<T>(key: String, value: T) {
         userDefaults.set(value, forKey: key)
     }
     
-    func retrieve(key: String) -> Data? {
-        return userDefaults.data(forKey: key)
+    func retrieve<T>(key: String) -> T? {
+        return userDefaults.value(forKey: key) as? T
     }
 }

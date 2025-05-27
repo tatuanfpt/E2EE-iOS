@@ -29,9 +29,13 @@ struct ContentView: View {
                 case.conversation(let sender):
                     factory.createConversation(sender: sender, didTapItem: { sender, receiver in
                         flow.start(type: .pushTo(ConversationDestination.chat(sender: sender, receiver: receiver)))
+                    }, didTapLogOut: {
+                        flow.start(type: .popToRoot)
                     })
                 case .chat(let sender, let receiver):
-                    factory.createChat(sender: sender, receiver: receiver)
+                    factory.createChat(sender: sender, receiver: receiver, didTapBack: {
+                        flow.start(type: .popBack)
+                    })
                 }
             }
         }

@@ -21,11 +21,12 @@ extension Factory {
     func createRootView(didLogin: @escaping () -> Void, didGoToConversation: @escaping (String) -> Void) -> some View {
         Text("Loading")
             .onAppear {
-                guard let dict = self.keyStore.retrieve(key: ) as? [String: Data] else {
+                let user: String? = self.keyStore.retrieve(key: .loggedInUserKey)
+                if let user = user {
+                    didGoToConversation(user)
+                } else {
                     didLogin()
-                    return
                 }
-                didGoToConversation(dict.keys.first!)
             }
     }
     
@@ -34,7 +35,6 @@ extension Factory {
             let secureKeyService = P256SecureKeyService()
             let authenticationService = PasswordAuthenticationService(secureKeyService: secureKeyService, keyStore: keyStore)
             loginViewModel = LoginViewModel(service: authenticationService, didLogin: didLogin)
-            keyStore.store(key: .isLogIn, value: true)
         }
         guard let loginViewModel = loginViewModel else {
             fatalError("loginViewModel need to be set before use ")
@@ -42,9 +42,9 @@ extension Factory {
         
         return LogInView(viewModel: loginViewModel)
     }
-    func createConversation(sender: String, didTapItem: @escaping (String, String) -> Void) -> some View {
+    func createConversation(sender: String, didTapItem: @escaping (String, String) -> Void, didTapLogOut: @escaping () -> Void) -> some View {
         if conversationViewModel == nil {
-            conversationViewModel = ConversationViewModel(sender: sender, service: userService, didTapItem: didTapItem)
+            conversationViewModel = ConversationViewModel(sender: sender, service: userService, didTapItem: didTapItem, didTapLogOut: didTapLogOut)
         }
         
         guard let conversationViewModel = conversationViewModel else {
@@ -56,14 +56,14 @@ extension Factory {
         return ConversationView(viewModel: conversationViewModel)
     }
     
-    func createChat(sender: String, receiver: String) -> some View {
+    func createChat(sender: String, receiver: String, didTapBack: @escaping () -> Void) -> some View {
         if chatViewModel == nil {
             let encryptService = AESEncryptService()
             let decryptService = AESDecryptService()
             let secureKeyService = P256SecureKeyService()
             let messageService = RemoteMessageService(secureKey: secureKeyService, keyStore: keyStore, decryptService: decryptService)
             let socketService = LocalSocketService(encryptService: encryptService, decryptService: decryptService, keyStore: keyStore)
-            chatViewModel = ChatViewModel(sender: sender, receiver: receiver, service: socketService, messageService: messageService)
+            chatViewModel = ChatViewModel(sender: sender, receiver: receiver, service: socketService, messageService: messageService, didTapBack: didTapBack)
         }
         
         guard let chatViewModel = chatViewModel else {

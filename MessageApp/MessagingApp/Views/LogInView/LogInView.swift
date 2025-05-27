@@ -43,7 +43,7 @@ class LoginViewModel {
     func logIn(email: String, password: String) {
         service.login(data: .init(email: email, password: password))
             .sink { completion in
-                print("logIn completed")
+                debugPrint("logIn completed")
             } receiveValue: { [weak self] isLoggedIn in
                 self?.didLogin(email)
             }

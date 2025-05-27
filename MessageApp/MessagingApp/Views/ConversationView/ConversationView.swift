@@ -31,7 +31,18 @@ struct ConversationView: View {
         .onAppear {
             viewModel.fetchUsers()
         }
-        .toolbar(.hidden)
+        .toolbar {
+//            ToolbarItem(placement: .navigationBarTrailing) {
+//                Button {
+//                    viewModel.logout()
+//                } label: {
+//                    Text("Log Out")
+//                        .foregroundStyle(Color.red)
+//                }
+//            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
         .navigationTitle("Conversation")
     }
 }
@@ -45,11 +56,13 @@ class ConversationViewModel {
     private let service: UserService
     private var cancellables: Set<AnyCancellable> = []
     private let didTapItem: (String, String) -> Void
+    private let didTapLogOut: () -> Void
     
-    init(sender: String, service: UserService, didTapItem: @escaping (String, String) -> Void) {
+    init(sender: String, service: UserService, didTapItem: @escaping (String, String) -> Void, didTapLogOut: @escaping () -> Void) {
         self.sender = sender
         self.service = service
         self.didTapItem = didTapItem
+        self.didTapLogOut = didTapLogOut
     }
     
     func fetchUsers() {
@@ -59,7 +72,7 @@ class ConversationViewModel {
                 switch completion {
                 case .failure(let error):
                     //TODO: -show error state
-                    print("❌ fetchUsers failed")
+                    debugPrint("❌ fetchUsers failed")
                 case .finished: break
                 }
             } receiveValue: { [weak self] users in
@@ -72,8 +85,12 @@ class ConversationViewModel {
     func select(user: User) {
         didTapItem(sender, user.username)
     }
+    
+    func logout() {
+        didTapLogOut()
+    }
 }
 
 #Preview {
-    ConversationView(viewModel: ConversationViewModel(sender: "", service: NullUserService(), didTapItem: { _, _ in }))
+    ConversationView(viewModel: ConversationViewModel(sender: "", service: NullUserService(), didTapItem: { _, _ in }, didTapLogOut: {}))
 }

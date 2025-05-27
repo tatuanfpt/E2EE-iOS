@@ -36,6 +36,12 @@ struct ChatView: View {
             .padding()
         }
         .clipped()
+        .navigationBarBackButtonHidden()
+        .toolbar{
+            ToolbarItem(placement: .topBarLeading) {
+                backBarButton
+            }
+        }
         .onAppear {
             viewModel.subscribe()
             viewModel.loadFirstMessage()
@@ -48,8 +54,19 @@ struct ChatView: View {
             }
         }
     }
+    
+    private var backBarButton: some View {
+        Button {
+            viewModel.reset()
+        } label: {
+            HStack {
+                Image(systemName: "chevron.left")
+                Text("Back")
+            }
+        }
+    }
 }
 
 #Preview {
-    ChatView(viewModel: ChatViewModel(sender: "slh", receiver: "", service: NullSocketService<String, TextMessage>(), messageService: NullMessageService()))
+    ChatView(viewModel: ChatViewModel(sender: "slh", receiver: "", service: NullSocketService<String, TextMessage>(), messageService: NullMessageService(), didTapBack: {}))
 }
