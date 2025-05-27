@@ -1,126 +1,91 @@
-📱 iOS E2EE Messaging Assignment (UIKit + Swift)
-Welcome to the End-to-End Encrypted Messaging SDK Assignment for iOS. Your task is to build a secure, modular, and real-time messaging SDK in native iOS using Swift and UIKit, applying clean architecture principles and integrating end-to-end encryption and live communication features.
+📱 iOS E2EE Messaging Assignment (SwiftUI + Swift)
+Welcome to the End-to-End Encrypted Messaging SDK Assignment for iOS. This project implements a secure, modular, and real-time messaging system with end-to-end encryption and live communication features.
 
-🎯 Assignment Overview
-You will build an SDK to send encrypted messages in real-time and integrate it into a demo UIKit-based iOS app. The SDK should separate concerns (encryption, storage, networking) and be easily usable in other iOS projects.
+🎯 Project Overview
+The project consists of two main components:
+1. A Node.js-based chat server with WebSocket support
+2. An iOS messaging app built with SwiftUI
 
-✅ MUST: Core Requirements
-1. 🧱 SDK Architecture (Clean Architecture)
-Build the SDK using Clean Architecture principles:
+✅ Core Features
+1. 🧱 Server Architecture
+- Express.js server with Socket.IO for real-time communication
+- SQLite database for message and user storage
+- RESTful API endpoints for user management and message history
+- WebSocket implementation for real-time messaging
 
-Domain Layer: Entities and use cases (e.g., Message, SendMessageUseCase).
+2. 📱 iOS App Architecture
+- SwiftUI-based UI implementation
+- Clean architecture with separate Views, Services, and Utils layers
+- Real-time messaging using WebSocket
+- End-to-end encryption for messages
 
-Data Layer: AES encryption logic, secure key storage, and real-time backend communication.
+3. 🔐 Security Features
+- Public key exchange system for secure communication
+- Session-based salt generation for message encryption
+- Secure key storage and management
+- End-to-end encrypted message transmission
 
-Presentation Layer: UIKit views and view controllers.
+4. 📡 Real-Time Features
+- WebSocket-based real-time messaging
+- User presence tracking
+- Message delivery status
+- Chat history with pagination
 
-The SDK must be modular and framework-compatible for integration into other iOS apps.
+🔹 Technical Implementation Details
 
-2. 📡 Real-Time Messaging
-Integrate a WebSocket-based service (e.g., Socket.IO or Supabase Realtime over WebSockets).
+Server Side:
+- Node.js with Express.js
+- Socket.IO for WebSocket communication
+- SQLite database for data persistence
+- RESTful API endpoints:
+  - User management (/users)
+  - Message history (/messages)
+  - Key exchange (/keys)
+  - Session management (/session)
 
-Enable:
+iOS App:
+- SwiftUI for modern UI implementation
+- MVVM architecture pattern
+- WebSocket client for real-time communication
+- Local storage for message history
+- End-to-end encryption implementation
 
-Sending encrypted messages.
+📚 API Documentation
 
-Receiving real-time updates.
+1. User Management
+- GET /users - List all users
+- POST /users - Create or login user
+- GET /users/chatted-with/:userId - Get users with chat history
 
-Displaying message history from local/remote storage.
+2. Messaging
+- GET /messages/:userA/:userB - Get chat history between users
+- WebSocket events:
+  - 'register' - User registration
+  - 'send-message' - Send encrypted message
+  - 'receive-message' - Receive encrypted message
 
-3. 📦 SDK Integration & Documentation
-Provide:
+3. Security
+- POST /keys - Store user's public key
+- GET /keys/:username - Retrieve user's public key
+- POST /session - Create new chat session
+- GET /session - Retrieve existing session
 
-Integration instructions (via Swift Package Manager or XCFramework).
+🔧 Setup Instructions
 
-Public APIs and usage examples.
+1. Server Setup
+```bash
+cd ChatServer
+npm install
+npm start
+```
 
-A working UIKit demo app using the SDK.
+2. iOS App Setup
+- Open MessagingApp.xcodeproj in Xcode
+- Build and run the project
 
-🔹 OPTIONAL: Additional Enhancements
-4. 🔐 Security Enhancements
-Dynamic IV Generation: Generate a new initialization vector (IV) per message.
-
-Secure Key Storage: Use Keychain Services to store keys.
-
-Key Exchange: Implement Diffie-Hellman (DH) for symmetric key negotiation between peers (e.g., using CryptoKit).
-
-5. 🧪 Testing
-Achieve 75%+ test coverage:
-
-Unit tests for AES encryption, decryption, key handling.
-
-Integration tests for message sending/receiving.
-
-Use XCTest.
-
-6. 🎨 UI/UX Enhancements (UIKit)
-Use MVVM or Coordinator pattern for better maintainability.
-
-Create static views for:
-
-Chat creation
-
-User profile
-
-Settings
-
-Authentication (basic email/pass or biometrics)
-
-Handle errors:
-
-Invalid key input
-
-Network failures
-
-Decryption issues
-
-7. 📱 Native Optimization
-Ensure the app and SDK work smoothly on iOS devices (iPhone, iPad).
-
-Optimize for:
-
-Memory usage during encryption.
-
-Responsiveness during real-time messaging.
-
-Test on at least one real device.
-
-⭐ BONUS: Advanced Challenges
-8. ⚡ Performance Optimization
-Measure performance for bulk encryption/decryption (e.g., 10,000 messages).
-
-Use Instruments to profile memory and CPU usage.
-
-Submit:
-
-Profiling screenshots
-
-A brief technical report of optimizations
-
-📚 Documentation Requirements
-Changelog: Track all notable changes (features, bug fixes, performance).
-
-Usage Guide: Steps to use the SDK, including:
-
-Setup
-
-Key APIs
-
-Integration into a demo app
-
-Technical Notes:
-
-Architecture choices
-
-Cryptographic decisions
-
-Performance observations
-
-Additional Notes
-Complete within 7 days.
-
-Use Git with regular commits to reflect your development process.
-
-Prioritize code quality, modularity, and security.
-
-Use English throughout your codebase and documentation.
+⭐ Additional Notes
+- The project uses modern Swift features and SwiftUI for the iOS app
+- Real-time communication is handled through WebSocket
+- End-to-end encryption is implemented for secure messaging
+- The server uses SQLite for data persistence
+- The iOS app follows MVVM architecture pattern
