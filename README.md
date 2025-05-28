@@ -1,91 +1,49 @@
-📱 iOS E2EE Messaging Assignment (SwiftUI + Swift)
-Welcome to the End-to-End Encrypted Messaging SDK Assignment for iOS. This project implements a secure, modular, and real-time messaging system with end-to-end encryption and live communication features.
+# E2EE Messaging App
 
-🎯 Project Overview
-The project consists of two main components:
-1. A Node.js-based chat server with WebSocket support
-2. An iOS messaging app built with SwiftUI
+An iOS application demonstrating End-to-End Encrypted messaging with real-time capabilities, built with SwiftUI and Swift.
 
-✅ Core Features
-1. 🧱 Server Architecture
-- Express.js server with Socket.IO for real-time communication
-- SQLite database for message and user storage
-- RESTful API endpoints for user management and message history
-- WebSocket implementation for real-time messaging
+## 🚀 Features
 
-2. 📱 iOS App Architecture
-- SwiftUI-based UI implementation
-- Clean architecture with separate Views, Services, and Utils layers
-- Real-time messaging using WebSocket
-- End-to-end encryption for messages
+- Real-time encrypted messaging
+- User authentication
+- Chat channel management
+- End-to-End Encryption (E2EE)
+- iOS native support
 
-3. 🔐 Security Features
-- Public key exchange system for secure communication
-- Session-based salt generation for message encryption
-- Secure key storage and management
-- End-to-end encrypted message transmission
+## 📱 Demo
 
-4. 📡 Real-Time Features
-- WebSocket-based real-time messaging
-- User presence tracking
-- Message delivery status
-- Chat history with pagination
+[Watch the demo video](https://youtu.be/E7nWm1vfdTE)
 
-🔹 Technical Implementation Details
+## 🛠️ Setup
 
-Server Side:
-- Node.js with Express.js
-- Socket.IO for WebSocket communication
-- SQLite database for data persistence
-- RESTful API endpoints:
-  - User management (/users)
-  - Message history (/messages)
-  - Key exchange (/keys)
-  - Session management (/session)
+1. Clone the repository
+2. Open the project in Xcode
+3. Start the server:
+   ```bash
+   # Start JS server
+   ```
+4. Build and run the app in Xcode
 
-iOS App:
-- SwiftUI for modern UI implementation
-- MVVM architecture pattern
-- WebSocket client for real-time communication
-- Local storage for message history
-- End-to-end encryption implementation
+## 🔒 Security
 
-📚 API Documentation
+- AES encryption for messages
+- Key pair management
+- Secure message transmission
 
-1. User Management
-- GET /users - List all users
-- POST /users - Create or login user
-- GET /users/chatted-with/:userId - Get users with chat history
+## 📚 Documentation
 
-2. Messaging
-- GET /messages/:userA/:userB - Get chat history between users
-- WebSocket events:
-  - 'register' - User registration
-  - 'send-message' - Send encrypted message
-  - 'receive-message' - Receive encrypted message
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Security Implementation](docs/SECURITY.md)
+- [Demo Guide](DEMO.md)
 
-3. Security
-- POST /keys - Store user's public key
-- GET /keys/:username - Retrieve user's public key
-- POST /session - Create new chat session
-- GET /session - Retrieve existing session
+## 🔄 Changelog
 
-🔧 Setup Instructions
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
-1. Server Setup
-```bash
-cd ChatServer
-npm install
-npm start
-```
+## 🎯 Future Improvements
 
-2. iOS App Setup
-- Open MessagingApp.xcodeproj in Xcode
-- Build and run the project
+See [TECHNICAL_DECISIONS.md](TECHNICAL_DECISIONS.md) for planned improvements and technical debt.
 
-⭐ Additional Notes
-- The project uses modern Swift features and SwiftUI for the iOS app
-- Real-time communication is handled through WebSocket
-- End-to-end encryption is implemented for secure messaging
-- The server uses SQLite for data persistence
-- The iOS app follows MVVM architecture pattern
+## 📝 License
+
+MIT License
